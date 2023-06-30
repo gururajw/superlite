@@ -1,0 +1,39 @@
+&inputpars
+
+in_name = '99em'
+in_comment = 'LTE, 1-D sph model of typical SN IIP with a SN 1999em-like progenitor at 40d'
+
+!-- misc
+ in_nomp = 1
+ in_io_grabstdout = f
+ in_io_opacdump = 'one'
+ in_io_profdump = t
+
+!-- grid settings
+ in_ndim = 154, 1, 1
+
+!-- flux settings
+ in_flx_ndim = 6000, 1, 1
+ in_flx_wlmin = 1d-8
+ in_flx_wlmax = 30d-5
+
+!-- group settings
+ in_grp_ng = 6000
+ in_grp_wlmin = 1d-8
+ in_grp_wlmax = 30d-5
+
+!-- particle numbers
+ in_src_n2s = 21
+ in_L_bol = 8.453d+41
+
+!-- ddmc mfp per cell
+ in_trn_tauddmc = 3d0
+ in_taulump = 3d0
+
+!-- opacity settings
+ in_nobbopac = f
+ in_nobfopac = f
+ in_noffopac = f
+ in_nothmson = f
+
+/

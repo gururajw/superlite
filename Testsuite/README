@@ -1,0 +1,13 @@
+This directory contains a a few test profiles in separate directories,
+each containing an input.str file. The models are described in the SuperLite
+methods paper in detail.
+The directories also contain reference output files from SuperLite runs
+including the output used for the plots in the SuperLite paper.
+
+w7: A typical SN I-a model of a carbon-oxygen WD from Nomoto et al. 1984
+    at 10d from shock breakout.
+s18: A typical SN II-P model from Curtis et al. 2021 at 20d after shock breakout
+SN 1999em-like: Another typical SN II-P model at 40d after shock breakout
+A4: A typical SN II-n model at 5d, 10d, 20d, and 30d after maximum in bolometric
+    luminosity
+SN 2017hcc-like: A luminos SN II-n model at 35d after shock breakout

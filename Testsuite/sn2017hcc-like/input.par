@@ -1,0 +1,39 @@
+&inputpars
+
+in_name = '2017hcc'
+in_comment = 'LTE, 1-D sph model of luminous SN IIn with a SN 2017hcc-like progenitor at 36d'
+
+!-- misc
+ in_nomp = 1
+ in_io_grabstdout = f
+ in_io_opacdump = 'one'
+ in_io_profdump = t
+
+!-- grid settings
+ in_ndim = 80, 1, 1
+
+!-- flux settings
+ in_flx_ndim = 6000, 1, 1
+ in_flx_wlmin = 1d-8
+ in_flx_wlmax = 30d-5
+
+!-- group settings
+ in_grp_ng = 6000
+ in_grp_wlmin = 1d-8
+ in_grp_wlmax = 30d-5
+
+!-- particle numbers
+ in_src_n2s = 21
+ in_L_bol = 1.372d+44
+
+!-- ddmc mfp per cell
+ in_trn_tauddmc = 3d0
+ in_taulump = 3d0
+
+!-- opacity settings
+ in_nobbopac = f
+ in_nobfopac = f
+ in_noffopac = f
+ in_nothmson = f
+
+/

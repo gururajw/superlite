@@ -1,0 +1,26 @@
+SuperLite - IMC-DDMC Radiation Transport Code for Interacting Transients
+----------------------------------------------------------------------
+
+The code setup instructions and documentation is available at
+https://gururajw.github.io/superlite_docs/
+
+Copyright (c) 2023 Gururaj Wagle.  All rights reserved.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    Please find a copy of the GNU General Public License in the COPYING
+    file provided along with this program, or see <http://www.gnu.org/licenses/>.
+
+If you use SuperLite, I ask you to appropriately acknowledge SuperLite and cite
+the paper in which the methods are described.
+Thank you,
+the authors
+
+guru.w84@gmail.com
