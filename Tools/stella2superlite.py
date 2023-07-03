@@ -9,7 +9,7 @@ An input.str file for SuperLite Snapshot (1d) is created from Stella profile
 file
 
 Example:
->> python stella_to_supernu_lite_IIn.py -d=20 -t -s --show-plots
+>> python stella_to_supernu_lite_IIn.py -o=path/to/sim-superlite/folder -p=path/to/stella/res/folder -d=20 -t -s --show-plots
 """
 
 import os,re,sys,shutil
@@ -501,8 +501,7 @@ dt_slite = [('x_left',float),('x_right',float),('vx_left',float),
           ('h',float),('he',float),('c',float),('n',float),('o',float),
           ('ne',float),('na',float),('mg',float),('si',float),('s',float),
           ('ar',float),('ca',float),('ti',float),('cr',float),('fe',float),
-          ('co',float),('ni',float),('cr48',float),('fe52',float),
-          ('co56',float),('ni56',float)]
+          ('co',float),('ni',float)]
 
 outdata=np.zeros(n_zones,dtype=dt_slite)
 nabund=0
@@ -516,7 +515,7 @@ if interpolate:
                                               vx_interp,vx_outer))
         outdata['mass'] = np.concatenate((mass_merge,mass_remain,
                                           mass_interp,mass_outer))
-        outdata['radtemp'] = np.concatenate((radtemp_merge,radtemp_remain,
+        outdata['rad_temp'] = np.concatenate((radtemp_merge,radtemp_remain,
                                               radtemp_interp,radtemp_outer))
         outdata['temp'] = np.concatenate((temp_merge,temp_remain,
                                           temp_interp,temp_outer))
@@ -534,7 +533,7 @@ if interpolate:
                                              xright_outer))
         outdata['vx_right'] = np.concatenate((vx_remain,vx_interp,vx_outer))
         outdata['mass'] = np.concatenate((mass_remain,mass_interp,mass_outer))
-        outdata['radtemp'] = np.concatenate((radtemp_remain,radtemp_interp,
+        outdata['rad_temp'] = np.concatenate((radtemp_remain,radtemp_interp,
                                               radtemp_outer))
         outdata['temp'] = np.concatenate((temp_remain,temp_interp,temp_outer))
         for name in abund.dtype.names:
@@ -549,10 +548,10 @@ else:
     outdata['vx_left'] = vel_right[:-1]
     outdata['vx_right'] = vel_right[1:]
     outdata['mass'] = data_stella['m_cell_g'][1:]
-    outdata['radtemp'] = data_stella['Trad'][1:]
+    outdata['rad_temp'] = data_stella['Trad'][1:]
     outdata['temp'] = data_stella['Tavg'][1:]
     for name in abund.dtype.names:
-        if abund[name].any():
+        if not hasNum(name) and abund[name].any():
             outdata[name]=abund[name][1:]
             nabund+=1
 
@@ -609,7 +608,7 @@ ax12.text(data_stella_original['r_center_cm'][ind_tau_thresh]/1e14,
 ax12.legend()
 ax13.plot(outdata['x_right']/1e14,outdata['temp']/1e4,
           'k--',lw=4,label="SuperLite input,T$_e$")
-ax13.plot(outdata['x_right']/1e14,outdata['radtemp']/1e4,
+ax13.plot(outdata['x_right']/1e14,outdata['rad_temp']/1e4,
          'k:',lw=4,label="SuperLite,T$_{rad}$")
 ax13.axvline(data_stella_original['r_center_cm'][ind_tau_thresh]/1e14,
              color='darkgrey',ls='--')
@@ -624,7 +623,7 @@ ax14.text(data_stella_original['r_center_cm'][ind_tau_thresh]/1e14,
           ax14.get_ylim()[1]*.05,'$\\rm \\tau_{Stella} = %d$'
           % int(data_stella_original['tau'][ind_tau_thresh]),
           ha='right',rotation=90,fontsize=12)
-# ax14.plot(outdata['x_right'],outdata['radtemp']/1e4,
+# ax14.plot(outdata['x_right'],outdata['rad_temp']/1e4,
 #           color=colors[1],ls=':',linewidth=4,label="Output Data")
 # ax14.legend()
 
@@ -694,32 +693,37 @@ for i in range(0,n_zones):
 outfile.close()
 
 ### update parameters in input.par
-shutil.copy2(home+'/workspaces/superlite/input.par.lte',
+shutil.copy2(home+'/codes/superlite/src/Input/input.par.lte',
              outdir+'/input.par.lte')
-shutil.copy2(home+'/workspaces/superlite/input.par.nlte',
+shutil.copy2(home+'/codes/superlite/src/Input/input.par.nlte',
              outdir+'/input.par.nlte')
 
 file = outdir+'/input.par.lte'
-replace_line(file, 15, " in_ndim = %d, 1, 1" % n_zones)
+replace_line(file, 13, " in_ndim = %d, 1, 1" % n_zones)
 text = ("%.3e" % L_bol).replace('e','d')
-replace_line(file, 36, " in_L_bol = %s" % text)
+replace_line(file, 23, " in_L_bol = %s" % text)
 if float(day)>=1:
-    replace_line(file, 57, "in_name = '%s, %dd, LTE'"
-                 % (out_prefix,int(day)))
+    replace_line(file, 3, "in_name = '%s'"
+                 % (out_prefix))
+    replace_line(file, 4, "in_comment = 'LTE, 1-D sph. model, %dd'"
+                 % (int(day)))
 else:
-    replace_line(file, 57, "in_name = '%s, %.1fd, LTE'"
-                 % (out_prefix,float(day)))
+    replace_line(file, 3, "in_name = '%s'"
+                 % (out_prefix))
+    replace_line(file, 4, "in_comment = 'LTE, 1-D sph. model, %.1fd'"
+                 % (float(day)))
 
 file = outdir+'/input.par.nlte'
-replace_line(file, 15, " in_ndim = %d, 1, 1" % n_zones)
+replace_line(file, 13, " in_ndim = %d, 1, 1" % n_zones)
 text = ("%.3e" % L_bol).replace('e','d')
-replace_line(file, 36, " in_L_bol = %s" % text)
-text = ("%.3e" % data_stella['r_center_cm'][
-          find_nearest_ind(data_stella['tau'],2/3)]).replace('e','d')
-replace_line(file, 56, " in_R_phot = %s" % text)
+replace_line(file, 23, " in_L_bol = %s" % text)
 if float(day)>=1:
-    replace_line(file, 59, "in_name = '%s, %dd, NLTE'"
-             % (out_prefix,int(day)))
+    replace_line(file, 3, "in_name = '%s'"
+                 % (out_prefix))
+    replace_line(file, 4, "in_comment = 'NLTE, 1-D sph. model, %dd'"
+                 % (int(day)))
 else:
-    replace_line(file, 59, "in_name = '%s, %.1fd, LTE'"
-                 % (out_prefix,float(day)))
+    replace_line(file, 3, "in_name = '%s'"
+                 % (out_prefix))
+    replace_line(file, 4, "in_comment = 'NLTE, 1-D sph. model, %.1fd'"
+                 % (float(day)))

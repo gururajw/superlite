@@ -7,6 +7,8 @@ Created on Wed Mar 30 15:20:24 2016
 
 Commonly used functions, some borrowed from internet
 """
+import numpy as np
+
 # =============================================================================
 # Input: Path to mesa.dayNNN_post_Lbol_max.data file
 # Returns np.ndarray object with profile properties
