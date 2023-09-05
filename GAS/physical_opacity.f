@@ -101,10 +101,11 @@ c-- bound-bound
         enddo !i
        enddo !iz
 c
-c$omp parallel
-c$omp& private(wl0,iz,ii,wl,wlinv,dwl,phi,ocggrnd,expfac,caphelp,igs,
-c$omp&   iigs,dirty)
-c$omp& shared(ngsub,gas_mass,grndlev,hckt,wlsub,cap)
+c$omp parallel default(none)
+c$omp& private(wl0,i,iz,ii,wl,wlinv,dwl,phi,ocggrnd,expfac,caphelp,
+c$omp&   igs,iigs,dirty)
+c$omp& shared(ngsub,bb_nline,bb_xs,gas_ncell,gas_mass,grndlev,hckt,
+c$omp&   wlsub,cap)
        iigs = 0
        dirty = .true.
        phi = 0d0
@@ -169,10 +170,10 @@ c
         enddo !i
        enddo !iz
 c
-c$omp parallel do
+c$omp parallel do default(none)
 c$omp& schedule(static)
 c$omp& private(wl,en,ie,xs)
-c$omp& shared(ngsub,gas_mass,grndlev,wlsub,cap)
+c$omp& shared(ngsub,gas_ncell,gas_mass,grndlev,wlsub,cap,ion_el)
        do igs=1,ngsub
         wl = wlsub(igs)  !in cm
         en = pc_h*pc_c/(pc_ev*wl) !photon energy in eV
@@ -201,10 +202,11 @@ c
 c-- simple variant: nearest data grid point
        hlparr = (gas_natom/gas_vol)**2*gas_nelec
        lwarn = .true.
-c$omp parallel do
+c$omp parallel do default(none)
 c$omp& schedule(static)
-c$omp& private(wl,wlinv,u,ru,du,iu,help,gg,rgg,dgg,igg,gff)
-c$omp& shared(ngsub,lwarn,hckt,hlparr,gas_mass,wlsub,cap)
+c$omp& private(i,iz,wl,wlinv,u,ru,du,iu,help,gg,rgg,dgg,igg,gff)
+c$omp& shared(ngsub,lwarn,hckt,hlparr,gas_ncell,gas_mass,gas_natomfr,
+c$omp&   wlsub,cap,ff_gff)
        do igs=1,ngsub
         wl = wlsub(igs)  !in cm
         wlinv = 1d0/wl  !in cm

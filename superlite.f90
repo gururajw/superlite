@@ -29,10 +29,10 @@ program superlite
 !***********************************************************************
 ! TODO and wishlist:
 !***********************************************************************
-  integer :: ierr, it,i
+  integer :: ierr, it
   integer :: icell1, ncell !number of cells per rank (gas_ncell)
   real*8 :: t0, t1 !timing
-  character(25) :: msg,fname
+  character(25) :: msg
 !
 !-- mpi initialization
   call mpi_init(ierr) !MPI
@@ -97,7 +97,7 @@ program superlite
   call fluxgrid_setup
 
 !-- setup spatial grid
-  call gridmod_init(lmpi0,grp_ng,str_nc,str_lvoid,icell1,ncell)
+  call gridmod_init(lmpi0,grp_ng,str_nc,icell1,ncell)
   call grid_setup
 !-- setup gas
   call gasmod_init(lmpi0,icell1,ncell,grp_ng)
@@ -185,7 +185,7 @@ program superlite
         allocate(src_ivacant(src_nnew))
         call vacancies          !Storing vacant "prt_particles" indexes in ordered array "src_ivacant"
         call boundary_source    !properties of prt_particles on domain boundary
-        call interior_source(it) !properties of prt_particles emitted in domain interior
+        call interior_source!(it) !properties of prt_particles emitted in domain interior
         call source_transformdirection
         deallocate(src_ivacant)
      endif

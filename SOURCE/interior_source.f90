@@ -1,6 +1,6 @@
 !This file is part of SuperLite. SuperLite is released under the terms of the GNU GPLv3, see COPYING.
 !Copyright (c) 2023 Gururaj A. Wagle.  All rights reserved.
-subroutine interior_source(it)
+subroutine interior_source!(it)
 
   use randommod
   use sourcemod
@@ -14,7 +14,7 @@ subroutine interior_source(it)
   use countersmod
 
   implicit none
-  integer, intent(in) :: it !experimental iterative approach
+  ! integer, intent(in) :: it !experimental iterative approach
 !##################################################
 !This subroutine instantiates new volume (cell) particle properties.
 !Composed of thermal source particle loop.
@@ -25,7 +25,7 @@ subroutine interior_source(it)
   real*8 :: pwr
   real*8 :: r1, r2, r3, uul, uur, uumax
   real*8 :: om0, mu0, x0, ep0, wl0
-  real*8 :: denom2,x1,x2,x3,x4
+  real*8 :: denom2,x1,x2
 !-- neighbor emit values (for source tilting)
   integer :: icnb(6)
 !-- jrad for sampling !experimental iterative approach

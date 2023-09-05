@@ -88,6 +88,7 @@ c      -------------------------------------
       real*8,parameter :: c2 = pc_h*pc_c/pc_kb
 c-- optimized form
       b = 1d0/(wl*temp)
+      if(c2*b>=300d0) b = 300d0/c2 ! avoid overflow
       b = c1*(temp*b)**5/(exp(c2*b) - 1d0)
       end function planck
 c

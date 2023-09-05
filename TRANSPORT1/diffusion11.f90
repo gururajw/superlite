@@ -52,7 +52,7 @@ pure subroutine diffusion11(ptcl,ptcl2,vx,vy,vz,cache,rndstate,&
   real*8,pointer :: capemitgreyinv
   real*8,pointer :: speclump
   real*8 :: dist, help
-  real*8 :: vhelp,vhelp1,vhelp2,help1,help2
+  real*8 :: vhelp1,vhelp2,help1,help2
   real*8 :: dummy
 
   integer,pointer :: ix, ic, ig

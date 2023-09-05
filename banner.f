@@ -13,8 +13,7 @@ c
       character*(MPI_MAX_PROCESSOR_NAME) :: pname
       integer :: ilen,ierr
 c
-      character*40 :: coderev_id='r1.0.0'
-      character*28 :: build_date=''
+      character*40 :: coderev_id='r1.0.1'
 c      include 'version.inc'
 c
       call date_and_time(t_startdate,t_starttime)

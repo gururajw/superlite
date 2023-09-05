@@ -14,7 +14,7 @@ subroutine sourceenergy
 !A fraction of the source particle number src_ns is given
 !to each cell based on the amount of energy emitted by the cell.
 !##################################################
-  integer :: i
+  ! integer :: i
   ! real*8,dimension(grd_ncell) :: P_adia
   ! real*8,dimension(grp_ng) :: wlm,dwl
 

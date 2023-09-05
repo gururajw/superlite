@@ -13,11 +13,11 @@ c     ----------------------
 ************************************************************************
 * Write profilles to files at given interval - added - gaw
 ************************************************************************
-      integer :: i,j,l
+      integer :: j,l
 c
       character(4) :: el_name
       character(16) :: fstat='replace'
-      character(32) :: file_name,file_id
+      character(32) :: file_name
 c
       real*8,allocatable :: arr(:)
       real*8 :: t0,t1

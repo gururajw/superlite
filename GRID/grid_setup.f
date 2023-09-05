@@ -11,13 +11,6 @@ c     ---------------------
 * Setup the grid on the computational domain
 ************************************************************************
       integer :: i,j,k,l,idcell
-      real*8 :: help
-c-- statment functions
-      integer :: ll
-      real*8 :: xm,ym,zm
-      xm(ll) = max(abs(grd_xarr(ll)),abs(grd_xarr(ll+1)))
-      ym(ll) = max(abs(grd_yarr(ll)),abs(grd_yarr(ll+1)))
-      zm(ll) = max(abs(grd_zarr(ll)),abs(grd_zarr(ll+1)))
 c
 c-- agnostic grid setup
       grd_xarr = str_xleft

@@ -69,8 +69,7 @@ c     --------------------------------
 *
 ************************************************************************
       real*8 :: help
-      real*8,allocatable :: wlstore(:)
-      integer :: ngm,nrm,l,ig
+      integer :: ig
 c
       open(4,file='input.wlgrid',status='old')
 c
@@ -115,6 +114,7 @@ c
       dx = x*abs(grp_wlinv(ig+1) - grp_wlinv(ig))
       x = x*.5d0*(grp_wlinv(ig+1) + grp_wlinv(ig))
 c
+      if(x>=300d0) x = 300d0 ! avoid overflow
       specint0 = ftpi4 * dx * x**3/(exp(x) - 1d0)
 c
       end function specint0
@@ -137,6 +137,7 @@ c
       x = hck*tempinv
       x = x*grp_wlinv(ig+1)
 c
+      if(x>=300d0) x = 300d0 ! avoid overflow
       dopspeccalc = ftpi4 * x**4/(exp(x) - 1d0)
 c
       end function dopspeccalc
@@ -261,7 +262,11 @@ c
 c
       elemental real*8 function f(x)
       real*8,intent(in) :: x
-      f = x**3/(exp(x) - 1d0)
+      if(x>=300d0) then ! avoid overflow
+        f = 300d0**3/(exp(300d0) - 1d0)
+      else
+        f = x**3/(exp(x) - 1d0)
+      endif
       end function
 c
       end subroutine specintv
@@ -389,7 +394,11 @@ c
 c
       elemental real*8 function f(x)
       real*8,intent(in) :: x
-      f = (x**4*exp(x))/((exp(x) - 1d0)**2)
+      if(x>=300d0) then ! avoid overflow
+        f = (300d0**4*exp(300d0))/((exp(300d0) - 1d0)**2)
+      else
+        f = (x**4*exp(x))/((exp(x) - 1d0)**2)
+      endif
       end function
 c
       end subroutine spectintv

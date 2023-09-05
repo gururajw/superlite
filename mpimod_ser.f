@@ -161,8 +161,6 @@ c
       subroutine reduce_gasprop
       use gridmod
       use gasmod
-      integer :: n
-      ! n = 2*gas_nchain
       grd_mass = reshape(gas_mass,[grd_ncell])
       grd_rho = reshape(gas_rho,[grd_ncell])
       grd_ye = reshape(gas_ye,[grd_ncell])

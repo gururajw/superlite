@@ -7,10 +7,9 @@ c     ---------------------------------------------
       implicit none
       integer,intent(in) :: igeom
 ************************************************************************
-* calculate volumes for all grid cells for expansion time t
+* calculate volumes for all grid cells
 ************************************************************************
       integer :: i,j,k,l
-      real*8 :: t
       real*8,allocatable :: vol(:,:,:) !too big for the stack
 c
       allocate(vol(grd_nx,grd_ny,grd_nz))

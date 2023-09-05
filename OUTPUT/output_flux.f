@@ -12,7 +12,6 @@ c     --------------------------
       logical,save :: lfirst=.true.
       character(16),save :: fstat='replace'
       integer :: reclen
-      real*8 :: help
 
       if(lfirst) then
        reclen = max(4,flx_ng+1,flx_nmu+1,flx_nom+1)*12

@@ -28,14 +28,14 @@ subroutine particle_advance
   integer :: i
   integer :: npckt, nflux
   integer :: nstepddmc, nstepimc, nmethodswap
-  real*8 :: r1, help, tau
+  real*8 :: help, tau
   integer :: ipart
   integer, pointer :: ig, ic
   integer, pointer :: ix, iy, iz
   real*8, pointer :: x,y,z, mu, e, e0, wl, om
   real*8 :: vx,vy,vz,help1,help2,vhelp1,vhelp2
   real*8 :: t0,t1
-  real*8 :: labfact, mu1, mu2
+  real*8 :: labfact
 !
   integer :: icold, igold, ierr
   real*8 :: eraddens, eamp
@@ -84,13 +84,19 @@ subroutine particle_advance
 !-- keep track of the number of particles in the particle array
   call counterreg(ct_nnonvacant,count(.not.prt_isvacant))
 
-!$omp parallel &
+!$omp parallel default(none) &
+!$omp shared(rnd_states,prt_npartmax,prt_isvacant,prt_particles, &
+!$omp    grd_nx,grd_xarr,grd_ny,grd_yarr,grd_nz,grd_zarr,grd_icell, &
+!$omp    grp_ng,grp_wl,grd_igeom,grd_sig,grd_cap,grd_eamp, &
+!$omp    trn_tauddmc,trn_noampfact,trn_errorfatal, &
+!$omp    grd_vxarr,grd_methodswap,t_pckt_stat,transport,diffusion, &
+!$omp    in_puretran,in_io_dogrdtally,in_nomp) &
 !$omp private(ptcl,ptcl2,cache, &
 !$omp    specarr,glumps,llumps, &
 !$omp    x,y,z,mu,om,wl,e,e0,ix,iy,iz,ic,ig,icold,igold, &
-!$omp    r1,vx,vy,vz,help1,help2,vhelp1,vhelp2, &
-!$omp    i,t0,t1,help,tau,mu1,mu2,labfact, &
-!$omp    rndstate,eraddens,eamp,ierr, iomp) &
+!$omp    vx,vy,vz,help1,help2,vhelp1,vhelp2, &
+!$omp    i,t0,t1,help,tau,labfact,jrad, &
+!$omp    rndstate,eraddens,eamp,ierr,iomp) &
 !$omp reduction(+:grd_tally,grd_jrad, &
 !$omp    tot_evelo,tot_eout,tot_sflux, &
 !$omp    npckt,nflux, &

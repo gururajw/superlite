@@ -90,7 +90,7 @@ c-- simple analytical group/grey opacities: Planck and Rosseland
       else
 c-- calculate physical opacities
         if(in_nlte) then !NLTE
-          call physical_opacity_nlte(it)
+          call physical_opacity_nlte!(it)
         else
           call physical_opacity
         endif

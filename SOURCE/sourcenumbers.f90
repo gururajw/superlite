@@ -127,7 +127,6 @@ subroutine sourcenumbers_roundrobin_limit(iimpi,nvacant,evol,ntot,mvol,nvol)
 ! Distribute the source particle numbers over the mpi ranks in a
 ! round-robin fashion using iimpi as tracker.
 !-----------------------------------------------------------------------
-  real*8 :: help
   integer :: i,n,l
   integer :: nmpiavail,neach,nhere
 !

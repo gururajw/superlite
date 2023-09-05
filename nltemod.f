@@ -31,16 +31,17 @@ c-- Electron-impact excitation (EIE) data type
       type coll_raw_line_data
        integer :: lev1,lev2
        real*8 :: C0,C1,C2,C3 ! 4 fit coefficients
-       real*8 :: n_coll,delE !pre-factor coeff,transition energy (eV)
+       real*4 :: n_coll !pre-factor coeff
+       real*8 :: delE !transition energy (eV)
       end type coll_raw_line_data
-      type(coll_raw_line_data),allocatable :: coll_line(:) !nlte_nline
+      type(coll_raw_line_data),allocatable :: coll_line(:) !coll_nline
 c-- PI/RR transition data type
       type pi_rr_raw_line_data
        integer :: lev
        real*8 :: C0_RR,C1_RR,C2_RR,C3_RR ! 4 fit coefficients for RR rates
-       real*8 :: n_RR !pre-factor coeff for RR rates
+       real*4 :: n_RR !pre-factor coeff for RR rates
        real*8 :: C0_PI,C1_PI,C2_PI,C3_PI ! 4 fit coefficients for PI rates
-       real*8 :: n_PI !pre-factor coeff for PI rates
+       real*4 :: n_PI !pre-factor coeff for PI rates
        real*8 :: delE !transition energy (eV)
       end type pi_rr_raw_line_data
       type(pi_rr_raw_line_data),allocatable :: pi_rr_data(:) !nlte_nlevel
@@ -50,12 +51,13 @@ c-- NLTE data type for ionizaton stages
        integer :: nlev,nlin,coll_nlin !number of nlte levels and radiative and collision lines per species
       !-- level data (nlev)
        real*8,allocatable :: chilev(:) !in cm^-1
-       integer,allocatable :: levid(:),glev(:),nplev(:) !label,statistical weight,princical quantum number
+       integer,allocatable :: levid(:),nplev(:) !label,princical quantum number
+       real*8,allocatable ::glev(:) !statistical weight
       !-- radiative line data (nlin)
        integer,allocatable :: llw(:),lup(:) !lower and upper level id for radiative lines
        real*8,allocatable :: wl0(:) !in ang
        real*8,allocatable :: f(:) !oscillator strength
-       integer,allocatable :: gl(:),gu(:) !g_lower_level,g_upper_level
+       real*8,allocatable :: gl(:),gu(:) !g_lower_level,g_upper_level
        real*8,allocatable :: Aul(:),Bul(:),Blu(:) ! Einstein coefficients
        real*8,allocatable :: qlu(:) ! collisional excitation rates !van Regemorter
        !-- EIE line data (coll_nlin)
@@ -236,19 +238,22 @@ c
 * next iteration
 ************************************************************************
       integer :: i,ig
-      real*8, allocatable :: wlm(:),dwl(:)
+      real*8 :: wlm
       real*8,allocatable :: Trad(:)
 c
       allocate(Trad(grd_ncell))
+c
       do i=1,grd_ncell
 c-- temperature estimator
        Trad(i) = (grd_tally(i)/(pc_acoef*grd_vol(i)))**.25
 c-- dampen the estimate for convergence
        grd_radtemp(i) = grd_radtemp(i) + 0.5*(Trad(i)-grd_radtemp(i))
 c-- radiation energy density estimator
-       grd_jrad(:,i) = wlm(:)**2*planckv(wlm(:),grd_radtemp(i))/pc_c
-c
-      enddo
+       do ig=1,grp_ng
+         wlm = 0.5d0*(grp_wl(ig+1) + grp_wl(ig))
+         grd_jrad(ig,i) = wlm**2*planck(wlm,grd_radtemp(i))/pc_c
+       enddo !ig
+      enddo !i
 c
       deallocate(Trad)
 c
@@ -371,7 +376,7 @@ c     ----------------------
 ************************************************************************
 * deallocate the complex nlte datastructure
 ************************************************************************
-      integer :: iz,ii,i
+      integer :: iz,ii
 c
       if(nlte_nelem.gt.0) then
        deallocate(nlte_ndens)

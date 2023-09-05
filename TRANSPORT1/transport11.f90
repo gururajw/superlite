@@ -50,7 +50,7 @@ pure subroutine transport11(ptcl,ptcl2,vx,vy,vz,rndstate,&
 !-- anisotropic Thomson scattering
   real*8 :: mutemp,muhelp,munew1,munew2,B,C
 !-- Doppler distance calculations
-  real*8 :: wlhelp,vxhelp,labfacthelp
+  real*8 :: wlhelp!,vxhelp,labfacthelp
   ! logical :: lsuplum
   real*8 :: shelp,xhelp,epstol,phi,dphi
   integer :: it
@@ -155,14 +155,25 @@ pure subroutine transport11(ptcl,ptcl2,vx,vy,vz,rndstate,&
   endif
   goto 66
 
-!-- Newton-Raphson Method
+!-- Newton-Raphson Method (Wagle et al. 2023, ApJ, 953, 132)
 67 continue
-  ddop = db ! first guess
   epstol = 1d-3 ! tolerance for convergence
   it = 0
+  shelp = db ! initial value (s_0)
+  !-- new x & mu
+  xhelp = sqrt(x**2 + shelp**2 + 2d0*shelp*x*mu)
+  muhelp = (mu*x + shelp) / xhelp
+  !-- phi
+  phi = dvdr(ix)*mu*x - pc_c*(1-wl*grp_wlinv(ig+1))+&
+        vhelp*muhelp + dvdr(ix)*shelp
+  !-- derivative of phi
+  dphi = dvdr(ix) + vhelp*(1 - muhelp**2)/xhelp
+  !-- next value, s_k
+  ddop = shelp - phi / dphi
+  !-- iterate to find ddop
   do while((abs(ddop-shelp).gt.ddop*epstol).and.it.lt.100)
     it = it + 1
-    shelp = ddop
+    shelp = ddop ! store previous value
     !-- new x & mu
     xhelp = sqrt(x**2 + shelp**2 + 2d0*shelp*x*mu)
     muhelp = (mu*x + shelp) / xhelp
@@ -177,7 +188,7 @@ pure subroutine transport11(ptcl,ptcl2,vx,vy,vz,rndstate,&
       ddop = far
       exit
     endif
-    !-- derivative
+    !-- derivative of phi
     dphi = dvdr(ix) + vhelp*(1 - muhelp**2)/xhelp
     !-- update ddop
     ddop = shelp - phi / dphi
@@ -246,8 +257,8 @@ pure subroutine transport11(ptcl,ptcl2,vx,vy,vz,rndstate,&
      call rnd_r(r1,rndstate)
 !-- anisotropic scattering (experimental)
      if(d==dthm.and.trn_thm_aniso) then
-       mutemp = ((4d0*r1-2d0+SQRT(1d0+16d0*(r1-0.5)**2d0))**(1/3) - &
-             (SQRT(1d0+16d0*(r1-0.5)**2d0)-(4d0-2d0*r1))**(1/3))
+       mutemp = ((4d0*r1-2d0+SQRT(1d0+16d0*(r1-0.5)**2d0))**(1d0/3d0) - &
+             (SQRT(1d0+16d0*(r1-0.5)**2d0)-(4d0-2d0*r1))**(1d0/3d0))
        muhelp = mutemp ! need to verify
        B = 2*mutemp*muhelp
        C = mutemp**2 + muhelp**2 - 1

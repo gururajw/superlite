@@ -1,6 +1,6 @@
 *This file is part of SuperLite. SuperLite is released under the terms of the GNU GPLv3, see COPYING.
 *Copyright (c) 2023 Gururaj A. Wagle.  All rights reserved.
-      subroutine physical_opacity_nlte(it)
+      subroutine physical_opacity_nlte!(it)
 c     ---------------------------
 c$    use omp_lib
       use physconstmod
@@ -14,12 +14,12 @@ c$    use omp_lib
       use groupmod
       use miscmod
       use timingmod
-      use elemdatamod, only:elem_data
       use mpimod
       implicit none
-      integer,intent(in) :: it
+      ! integer,intent(in) :: it
 ************************************************************************
-* compute NLTE bound-bound and LTE bound-free, free-free opacity.
+* compute NLTE bound-bound for H and LTE bound-bound for rest,
+* bound-free, free-free opacities for all.
 ************************************************************************
       integer :: i,j
       real*8 :: wlinv
@@ -34,18 +34,18 @@ c-- helper arrays
       real*8 :: hlparr(gas_ncell)
 c-- nlte
       integer :: llw,lup,nlte_nlev,nlte_nlin,coll_nlin ! levels and lines
-      integer :: g_llw,g_lup ! statistical weights
+      real*8 :: g_llw,g_lup ! statistical weights
       real*8 :: Aul,Bul,Blu,Cul,Clu ! Einstein coefficients
       real*8 :: npop_llw,npop_lup
-      real*8 :: u0,x_coll,f_coll,gamma,gamma_d ! Electron-Impact Excitation (EIE)
+      real*8 :: x_coll,f_coll,gamma,gamma_d ! Electron-Impact Excitation (EIE)
       real*8 :: x_PI,f_PI,x_RR,f_RR ! Photo-ionization and radiative recombination
       real*8,allocatable :: gamma_PI(:),gamma_RR(:)
       real*8,allocatable :: rcoeff(:,:),rmatrix(:,:),rinv(:,:) !(nlte_nlev,nlte_nlev) !rate matrices
       real*8,allocatable :: npophelp(:),nrate(:) !nlte_nlev !excitation level population column matrices n, and dn/dt
-      real,parameter :: fconst = sngl(pc_pi*pc_e**2/(pc_me*pc_c))
+      real*8,parameter :: fconst = pc_pi*pc_e**2/(pc_me*pc_c)
       real*8,parameter :: kb_ev = pc_kb / pc_ev
 c-- output for debugging
-      logical :: do_output = .false.
+      ! logical :: do_output = .false.
 c-- ffxs
       real*8,parameter :: c1 = 4d0*pc_e**6/(3d0*pc_h*pc_me*pc_c**4)*
      &  sqrt(pc_pi2/(3*pc_me*pc_h*pc_c))
@@ -54,7 +54,7 @@ c-- ffxs
       integer :: iu,igg
 c-- bfxs
       integer :: il,ig,igs,iigs,iz,ii,ie
-      integer :: l,ll,iln,reclen
+      integer :: l,ll,iln
       logical :: dirty
       real*8 :: en,xs,wl
 c-- bbxs
@@ -62,7 +62,6 @@ c-- bbxs
       real*8 :: expfac(gas_ncell)
       real*8 :: caphelp,emithelp
       real*8 :: wlm,B_nu,J_nu
-      real*8 :: specarr(grp_ng)
       real*8,parameter :: ftpi4 = 15d0/pc_pi**4
 c-- temporary cap array in the right order
       real*8,allocatable :: cap(:,:) !(gas_ncell,grp_ng*grp_ngs)
@@ -74,13 +73,12 @@ c-- thomson scattering
      &  *pc_c**4)
 c-- warn once
       logical :: lwarn
-      character(40) :: fname
+      ! character(40) :: fname
 c-- temporary population arrays
       type level_populations
         real*8,allocatable :: n(:) !nlev
       end type level_populations
-      type(level_populations),
-     &  dimension(gas_ncell,nlte_nspecies,nlte_nelem) :: npop
+      type(level_populations),allocatable :: npop(:,:,:)
 c
 c-- subgroups
       ngsub = grp_ng*grp_ngs
@@ -134,6 +132,8 @@ c-- bound-bound
        enddo !iz
 c
 c-- NLTE opacity calculation
+       allocate(npop(gas_ncell,nlte_nspecies,nlte_nelem))
+c
        do iz=1,nlte_nelem
         do ii=1,iz
          nlte_nlev = nlte_data(iz)%i(ii)%nlev
@@ -158,10 +158,6 @@ c-- rate and population calculations
           npop(i,ii,iz)%n = 0d0
 c-- radiative terms
 c
-c$omp parallel do schedule(static)
-c$omp& private(il,llw,lup,Aul,Bul,Blu,wl0,igs,J_nu)
-c$omp& shared(nlte_data,gas_ncell,gas_mass,gas_temp,
-c$omp&   gas_nelec,gas_natom,gas_vol,nlte_ndens)
           do il=1,nlte_nlin
            llw = nlte_data(iz)%i(ii)%llw(il)
            lup = nlte_data(iz)%i(ii)%lup(il)
@@ -175,7 +171,7 @@ c-- igs pointer
            enddo !igs
 c-- line in group
            if(igs<1) cycle
-           if(igs>ngsub) cycle !can't exit in omp
+           if(igs>ngsub) cycle !lines are not sorted
 c
            wlm = 0.5d0*(grp_wl(igs+1)+grp_wl(igs))
            J_nu = (wlm**2/pc_c)*planck(wlm,gas_temp(i))
@@ -190,17 +186,17 @@ c-- calculate rate coefficients r(u->l) and r(l->u) for each level pair l,u
             enddo !ll
            enddo !l
           enddo !il
-c$omp end parallel do
 c
           if(any(rcoeff/=rcoeff)) stop 'nlte opacity:rcoeff NaN'
 c
 c-- collisional (EIE) terms
-c$omp parallel do schedule(static)
-c$omp& private(il,x_coll,f_coll,gamma,llw,lup,g_llw,g_lup,
+c$omp parallel do schedule(static) default(none)
+c$omp& private(l,ll,x_coll,f_coll,gamma,llw,lup,g_llw,g_lup,
 c$omp&    gamma_d,Clu,Cul)
-c$omp& shared(i,iz,ii,gas_ncell,gas_mass,gas_temp,gas_nelec,
-c$omp&   gas_natom,gas_vol,tempinv,nlte_ndens,nlte_data,
-c$omp&   nlte_nlev,rcoeff)
+c$omp& shared(i,iz,ii,coll_nlin,gas_ncell,gas_mass,gas_temp,
+c$omp&   gas_nelec,gas_natom,gas_vol,tempinv,nlte_ndens,nlte_data,
+c$omp&   nlte_nlev)
+c$omp& reduction(+:rcoeff)
           do il=1,coll_nlin
            x_coll = nlte_data(iz)%i(ii)%delE(il)*tempinv(i)/kb_ev
            f_coll = nlte_data(iz)%i(ii)%C0(il) +
@@ -303,12 +299,6 @@ c
        do iz=1,nlte_nelem
         do ii=1,iz
          nlte_nlin = nlte_data(iz)%i(ii)%nlin
-c
-c$omp parallel do schedule (static)
-c$omp& private(wl0,wl,wlinv,dwl,phi,caphelp,emithelp,igs,iigs,
-c$omp&   dirty,B_nu,llw,lup,g_llw,g_lup,npop_llw,npop_lup)
-c$omp& shared(ngsub,wlsub,gas_mass,gas_temp,gas_ncell,
-c$omp&   npop,nlte_ndens,nlte_data,cap,capemit,emiss)
          do iln=1,nlte_nlin
           wl0 = nlte_data(iz)%i(ii)%wl0(iln)*pc_ang
 c-- igs pointer
@@ -352,18 +342,22 @@ c-- emissivity for output
            emiss(i,igs) = emiss(i,igs) + emithelp
           enddo !i
          enddo !iln
-c$omp end parallel do
         enddo !ii
        enddo !iz
+c
+       deallocate(npop)
+c
 c-- LTE opacity calculations
+c$omp parallel default(none)
+c$omp& private(wl0,wl,wlinv,dwl,phi,ocggrnd,expfac,i,igs,iigs,
+c$omp&   caphelp,emithelp,dirty,B_nu,iz,ii)
+c$omp& shared(ngsub,gas_mass,gas_temp,grndlev,hckt,wlsub,bb_xs,
+c$omp&   bb_nline,gas_ncell,nlte_nelem,nlte_ndens,nlte_data,
+c$omp&   cap,capemit,emiss)
        iigs = 0
        dirty = .true.
        phi = 0d0
-c$omp parallel do schedule (static)
-c$omp& private(wl0,wl,wlinv,dwl,phi,ocggrnd,expfac,igs,iigs,
-c$omp&   caphelp,emithelp,dirty,B_nu)
-c$omp& shared(ngsub,gas_mass,gas_temp,grndlev,hckt,wlsub,
-c$omp&   gas_ncell,nlte_ndens,nlte_data,cap,capemit,emiss)
+c$omp do schedule (static)
        do il=1,bb_nline
         wl0 = bb_xs(il)%wl0*pc_ang  !in cm
         iz = bb_xs(il)%iz
@@ -412,7 +406,8 @@ c-- emissivity for output
         enddo !i
        enddo !il !bb_nline
 c
-c$omp end parallel do
+c$omp end do
+c$omp end parallel
 c
       endif !in_nobbopac
 c
@@ -430,9 +425,10 @@ c
        enddo !iz
 c
 c$omp parallel do
-c$omp& schedule(static)
-c$omp& private(wl,en,ie,xs,B_nu)
-c$omp& shared(ngsub,gas_mass,grndlev,wlsub,cap,capemit,emiss)
+c$omp& schedule(static) default(none)
+c$omp& private(i,ii,iz,wl,en,ie,xs,B_nu)
+c$omp& shared(ngsub,gas_ncell,gas_mass,gas_temp,grndlev,wlsub,
+c$omp&  cap,capemit,emiss,ion_el)
        do igs=1,ngsub
         wl = wlsub(igs)  !in cm
         en = pc_h*pc_c/(pc_ev*wl) !photon energy in eV
@@ -469,10 +465,11 @@ c
 c-- simple variant: nearest data grid point
        hlparr = (gas_natom/gas_vol)**2*gas_nelec
        lwarn = .true.
-c$omp parallel do
+c$omp parallel do default(none)
 c$omp& schedule(static)
-c$omp& private(wl,wlinv,u,ru,du,iu,help,gg,rgg,dgg,igg,gff,B_nu)
-c$omp& shared(ngsub,lwarn,hckt,hlparr,gas_mass,wlsub,cap,capemit,emiss)
+c$omp& private(i,iz,wl,wlinv,u,ru,du,iu,help,gg,rgg,dgg,igg,gff,B_nu)
+c$omp& shared(ngsub,lwarn,hckt,hlparr,gas_ncell,gas_mass,gas_natomfr,
+c$omp&   gas_temp,wlsub,grp_wl,cap,capemit,emiss,ff_gff)
        do igs=1,ngsub
         wl = wlsub(igs)  !in cm
         wlinv = 1d0/wl  !in cm

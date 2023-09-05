@@ -386,7 +386,7 @@ c     -----------------------------------
       real*8,parameter :: acc=1d-8 !accuracy requirment for convergence
       integer :: iconv,ihelp,iprev
       integer :: il,ii,iz,ize,istart,ntemp,niter,nion
-      real*8 :: ktei,ktri,delta,chi_0,r,W,b,help,zeta,nsum
+      real*8 :: ktei,ktri,delta,chi_0,W,b,help,zeta
 c-- ion population ratios
       type phi_vals ! values of phi for lte and nebular approximation
         real*8,allocatable :: phis(:) ! phi_{i,j+1/j}
@@ -661,7 +661,7 @@ c     ----------------------------------
 * exitation/ionization potentials are converted from [cm^-1] to [erg].
 ************************************************************************
       character(8),parameter :: fname='data.ion'
-      integer :: l,ll,iz,ii,icod,nlevel,ilast
+      integer :: l,ll,iz,ii,icod,nlevel
       integer :: ntemp,nzeta !nebular approximation
       integer :: istat
       real*8 :: help

@@ -12,7 +12,6 @@ c     --------------------------
       integer :: i
       character(16),save :: fstat='replace'
       integer :: reclen
-      real*8 :: help
       real*8 :: t0,t1
 c
       t0 = t_time()

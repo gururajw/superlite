@@ -97,18 +97,17 @@ c-- everything else
 c==================
 c-- broadcast constants
 c-- logical
-      n = 5
+      n = 4
       allocate(lsndvec(n))
-      if(lmpi0) lsndvec = [str_lvoid,str_lvol,str_lye,str_lradtemp,
+      if(lmpi0) lsndvec = [str_lvol,str_lye,str_lradtemp,
      &                     str_llum]
       call mpi_bcast(lsndvec,n,MPI_LOGICAL,
      &  impi0,MPI_COMM_WORLD,ierr)
 c-- copy back
-      str_lvoid = lsndvec(1)
-      str_lvol = lsndvec(2)
-      str_lye = lsndvec(3)
-      str_lradtemp = lsndvec(4)
-      str_llum = lsndvec(5)
+      str_lvol = lsndvec(1)
+      str_lye = lsndvec(2)
+      str_lradtemp = lsndvec(3)
+      str_llum = lsndvec(4)
       deallocate(lsndvec)
 c
 c-- integer
@@ -251,7 +250,7 @@ c-- glev
         if(impi/=impi0) ion_el(iz)%i(ii)%glev = vec(:n)
 c-- meta !nebular approximation
         if(lmpi0) vecl(:n) = ion_el(iz)%i(ii)%meta
-        call mpi_bcast(vecl(1),n,MPI_REAL8,
+        call mpi_bcast(vecl(1),n,MPI_LOGICAL,
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) ion_el(iz)%i(ii)%meta = vecl(:n)
 c-- zval !nebular approximation
@@ -276,8 +275,9 @@ c
 ************************************************************************
       integer :: ii,iz,isp,n
       real*8 :: vec(10000)
+      real :: vec1(10000)
       integer :: vecn(10000)
-      integer :: nlin(nlte_nspecies),nlev(nlte_nspecies) ! currently 1 species - h1
+      integer :: nlin(nlte_nspecies),nlev1(nlte_nspecies) ! currently 1 species - h1
       integer :: coll_nlin(nlte_nspecies) ! currently 1 species - h1
 
 c-- evaluate shape info
@@ -287,7 +287,7 @@ c-- count nlte species
        do iz=1,nlte_nelem
         do ii=1,iz
          isp = isp + 1
-         nlev(isp) = nlte_data(iz)%i(ii)%nlev
+         nlev1(isp) = nlte_data(iz)%i(ii)%nlev
          nlin(isp) = nlte_data(iz)%i(ii)%nlin
          coll_nlin(isp) = nlte_data(iz)%i(ii)%coll_nlin
         enddo !ii
@@ -296,7 +296,7 @@ c-- sanity check
        if(isp/=nlte_nspecies) stop "bcast_nlte: nlte_nspecies problem"
       endif !lmpi0
 c-- broadcast shape info and allocate
-      call mpi_bcast(nlev,nlte_nspecies,MPI_INTEGER,
+      call mpi_bcast(nlev1,nlte_nspecies,MPI_INTEGER,
      &  impi0,MPI_COMM_WORLD,ierr)
       call mpi_bcast(nlin,nlte_nspecies,MPI_INTEGER,
      &  impi0,MPI_COMM_WORLD,ierr)
@@ -304,7 +304,7 @@ c-- broadcast shape info and allocate
      &  impi0,MPI_COMM_WORLD,ierr)
 c-- allocate structure
       if(impi/=impi0) then
-       call nlte_alloc_data(nlte_nelem,nlte_nspecies,nlev,nlin,
+       call nlte_alloc_data(nlte_nelem,nlte_nspecies,nlev1,nlin,
      &   coll_nlin)
       endif
 c-- fill structure
@@ -313,22 +313,22 @@ c-- fill structure
        do ii=1,iz
         isp = isp + 1
 c-- level data
-        n = nlev(isp)
+        n = nlev1(isp)
 c-- chilev
         if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%chilev
         call mpi_bcast(vec(1),n,MPI_REAL8,
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%chilev = vec(:n)
-c-- glev
+c-- levid
         if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%levid
         call mpi_bcast(vecn(1),n,MPI_INTEGER,
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%levid = vecn(:n)
 c-- glev
-        if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%glev
-        call mpi_bcast(vecn(1),n,MPI_INTEGER,
+        if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%glev
+        call mpi_bcast(vec(1),n,MPI_REAL8,
      &    impi0,MPI_COMM_WORLD,ierr)
-        if(impi/=impi0) nlte_data(iz)%i(ii)%glev = vecn(:n)
+        if(impi/=impi0) nlte_data(iz)%i(ii)%glev = vec(:n)
 c-- nplev
         if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%nplev
         call mpi_bcast(vecn(1),n,MPI_INTEGER,
@@ -347,15 +347,15 @@ c-- f
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%f = vec(:n)
 c-- gl
-        if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%gl
-        call mpi_bcast(vecn(1),n,MPI_INTEGER,
+        if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%gl
+        call mpi_bcast(vec(1),n,MPI_REAL8,
      &    impi0,MPI_COMM_WORLD,ierr)
-        if(impi/=impi0) nlte_data(iz)%i(ii)%gl = vecn(:n)
+        if(impi/=impi0) nlte_data(iz)%i(ii)%gl = vec(:n)
 c-- gu
-        if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%gu
-        call mpi_bcast(vecn(1),n,MPI_INTEGER,
+        if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%gu
+        call mpi_bcast(vec(1),n,MPI_REAL8,
      &    impi0,MPI_COMM_WORLD,ierr)
-        if(impi/=impi0) nlte_data(iz)%i(ii)%gu = vecn(:n)
+        if(impi/=impi0) nlte_data(iz)%i(ii)%gu = vec(:n)
 c-- llw
         if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%llw
         call mpi_bcast(vecn(1),n,MPI_INTEGER,
@@ -419,16 +419,17 @@ c
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%C3 = vec(:n)
 c-- pre-factor coefficient
-        if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%n_coll
-        call mpi_bcast(vec(1),n,MPI_REAL8,
+        if(lmpi0) vec1(:n) = nlte_data(iz)%i(ii)%n_coll
+        call mpi_bcast(vec1(1),n,MPI_REAL,
      &    impi0,MPI_COMM_WORLD,ierr)
-        if(impi/=impi0) nlte_data(iz)%i(ii)%n_coll = vec(:n)
+        if(impi/=impi0) nlte_data(iz)%i(ii)%n_coll = vec1(:n)
 c-- transition energy
         if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%delE
         call mpi_bcast(vec(1),n,MPI_REAL8,
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%delE = vec(:n)
 c-- PI & RR transition data
+        n = nlev1(isp)
 c-- level
         if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%lev_PI
         call mpi_bcast(vecn(1),n,MPI_INTEGER,
@@ -455,10 +456,10 @@ c
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%C3_PI = vec(:n)
 c-- pre-factor coefficient for PI
-        if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%n_PI
-        call mpi_bcast(vecn(1),n,MPI_INTEGER,
+        if(lmpi0) vec1(:n) = nlte_data(iz)%i(ii)%n_PI
+        call mpi_bcast(vec1(1),n,MPI_REAL,
      &    impi0,MPI_COMM_WORLD,ierr)
-        if(impi/=impi0) nlte_data(iz)%i(ii)%n_PI = vecn(:n)
+        if(impi/=impi0) nlte_data(iz)%i(ii)%n_PI = vec1(:n)
 c-- Fit coefficients for RR
         if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%C0_RR
         call mpi_bcast(vec(1),n,MPI_REAL8,
@@ -480,10 +481,10 @@ c
      &    impi0,MPI_COMM_WORLD,ierr)
         if(impi/=impi0) nlte_data(iz)%i(ii)%C3_RR = vec(:n)
 c-- pre-factor coefficient for RR
-        if(lmpi0) vecn(:n) = nlte_data(iz)%i(ii)%n_RR
-        call mpi_bcast(vecn(1),n,MPI_INTEGER,
+        if(lmpi0) vec1(:n) = nlte_data(iz)%i(ii)%n_RR
+        call mpi_bcast(vec1(1),n,MPI_REAL,
      &    impi0,MPI_COMM_WORLD,ierr)
-        if(impi/=impi0) nlte_data(iz)%i(ii)%n_PI = vecn(:n)
+        if(impi/=impi0) nlte_data(iz)%i(ii)%n_PI = vec1(:n)
 c-- transition energy for RR/PI
         if(lmpi0) vec(:n) = nlte_data(iz)%i(ii)%delE_PI
         call mpi_bcast(vec(1),n,MPI_REAL8,
@@ -657,7 +658,7 @@ c     -----------------------------
       real*8 :: t0,t1
       real*8 :: sndgas(gas_ncell)
       real*8 :: sndgrd(grd_ncell)
-      integer :: nvacant
+      integer*8 :: nvacant
 c
       call mpi_barrier(MPI_COMM_WORLD,ierr)
       t0 = t_time()
@@ -721,7 +722,7 @@ c-- allreduce
       endif
 c
 c-- allgather
-      nvacant = count(prt_isvacant) !count returns the same type as prt_isvacant
+      nvacant = int(count(prt_isvacant), 8)!count returns the same type as prt_isvacant
       call mpi_allgather(nvacant,1,MPI_INTEGER8,
      &  src_nvacantall,1,MPI_INTEGER8,
      &  MPI_COMM_WORLD,ierr)
@@ -780,11 +781,8 @@ c     -----------------------
 * temperature correction.
 ************************************************************************
       integer :: n
-      integer :: isnd2f(flx_nmu,flx_nom)
-      real*8 :: snd2f(flx_nmu,flx_nom)
       integer,allocatable :: isnd(:)
       real*8,allocatable :: snd(:)
-      real*8,allocatable :: snd2(:,:)
       real*8 :: help
       real*8 :: t0,t1
 c
@@ -844,7 +842,6 @@ c     -----------------------
 ************************************************************************
       integer :: n
       real*8,allocatable :: snd2(:,:)
-      real*8 :: help
       real*8 :: t0,t1
 c
       call mpi_barrier(MPI_COMM_WORLD,ierr)
@@ -868,16 +865,17 @@ c
       use gridmod
       use groupmod
       use gasmod
+      use timingmod
       implicit none
 ************************************************************************
 * scatter the results for radiation intensity to all ranks
 ************************************************************************
       integer :: n
       real*8,allocatable :: snd(:),snd2(:,:)
-      real*8 :: help
       real*8 :: t0,t1
 c
       call mpi_barrier(MPI_COMM_WORLD,ierr)
+      t0 = t_time()
 c
       allocate(snd(grd_ncell),snd2(grp_ng,grd_ncell))
       n=grp_ng
@@ -891,6 +889,9 @@ c
      &  gas_jrad,n*gas_ncell,MPI_REAL8,
      &  impi0,MPI_COMM_WORLD,ierr)
       deallocate(snd,snd2)
+c
+      t1 = t_time()
+      call timereg(t_mpireduc, t1-t0)
       end subroutine scatter_jrad
 c
 c

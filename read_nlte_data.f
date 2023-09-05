@@ -15,12 +15,12 @@ c     --------------------------------
 * read all bound-bound cross sections
 ************************************************************************
       real,parameter :: fconst = sngl(pc_pi*pc_e**2/(pc_me*pc_c))
-      real,parameter :: Econst = sngl(4*pc_pi*fconst) !nLTE
-      real,parameter :: C0 = 5.465e-11 ! pi*a0^2*(8k/(m*pi))^0.5 !nlTE
-      real,parameter :: IH = 2.178d-11 !Ionization energy of hydrogen !nLTE
-      real*8 :: Elu,Cul,Clu !nLTE
+      real*8,parameter :: Econst = 4d0*pc_pi*fconst !nLTE
+      ! real,parameter :: C0 = 5.465e-11 ! pi*a0^2*(8k/(m*pi))^0.5 !nlTE
+      ! real*8,parameter :: IH = 2.178d-11 !Ionization energy of hydrogen !nLTE
+      ! real*8 :: Elu
       integer :: nlinall,ilinall,nlinnlte,ilinnlte
-      integer :: il,l,iz,ii,istat,llw,lhg,n,n1
+      integer :: il,l,iz,ii,istat,llw,lhg,n!,n1
       real*8 :: t0,t1
 c-- quick exit
       if(nlte_nel.gt.1) then
@@ -202,7 +202,7 @@ c
          nlte_data(iz)%i(ii)%f(il) = nlte_line(il)%f
          !-- Einstein coefficients A & B
          nlte_data(iz)%i(ii)%Aul(il) =
-     &      (2*Econst*nlte_level(llw)%g*nlte_line(il)%f)
+     &      (2d0*Econst*nlte_level(llw)%g*nlte_line(il)%f)
      &       /(nlte_level(lhg)%g*(nlte_line(il)%wl0*pc_ang)**2)
          nlte_data(iz)%i(ii)%Bul(il) =
      &      (Econst*nlte_line(il)%wl0*pc_ang*nlte_level(llw)%g
@@ -211,9 +211,9 @@ c
      &      (Econst*nlte_line(il)%wl0*pc_ang*nlte_line(il)%f)
      &       /(pc_h*pc_c)
 c-- Colisional excitaion, van Regemorter formula, eqn 9.58 of Hubeny and Mihalas (2014)
-         Elu = pc_h*pc_c/(nlte_line(il)%wl0*pc_ang)
-         nlte_data(iz)%i(ii)%qlu(il) = !remaining terms included in physical_opacity routine
-     &      C0*14.5*10**nlte_line(il)%f*(IH/Elu)**2
+!         Elu = pc_h*pc_c/(nlte_line(il)%wl0*pc_ang)
+!         nlte_data(iz)%i(ii)%qlu(il) = !remaining terms included in physical_opacity routine
+!     &      C0*14.5*10**nlte_line(il)%f*(IH/Elu)**2
         enddo !il !nlte_line
         deallocate(nlte_level,nlte_line)
 c-- EIE line data

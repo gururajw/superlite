@@ -13,7 +13,6 @@ c     ------------------------
 ************************************************************************
       integer :: ipart
       integer :: ix,iy,iz,ic,ig
-      real*8 :: help
       type(packet),pointer :: ptcl
 c
 c-- init

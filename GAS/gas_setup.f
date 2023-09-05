@@ -15,9 +15,9 @@ c     --------------------
 ************************************************************************
       integer :: l,i
       integer :: ig
-      real*8 :: W !dilution factor
+      ! real*8 :: W !dilution factor
       real*8 :: massfr(0:gas_nelem,gas_ncell) !0:container for unused elements
-      real*8,dimension(grp_ng) :: wlm
+      real*8 :: wlm
 c
 c-- agnostic mass setup
       gas_mass = str_massdd
@@ -59,9 +59,6 @@ c--cell-centered radii
       if(any(gas_rcell<=0.d0)) stop "gas_setup: gas_rcell<=0"
       if(any(gas_rcell/=gas_rcell)) stop "gas_setup: NaN in gas_rcell"
 c-- radiation intensity
-      do i=1,grp_ng
-        wlm(i) = 0.5d0*(grp_wl(i+1)+grp_wl(i))
-      enddo
 c-- J_nu = B_nu for first iteration in NLTE
       if(in_nebular.or.in_nlte) then
         do i=1,gas_ncell
@@ -72,7 +69,10 @@ c-- J_nu = B_nu for first iteration in NLTE
           !   W = 1d0
           ! endif
           !gas_jrad(:,i) = W*gas_jrad(:,i)
-          gas_jrad(:,i) = wlm(:)**2*planckv(wlm(:),gas_temp(i))/pc_c !first iteration
+          do ig=1,grp_ng
+            wlm = 0.5d0*(grp_wl(ig+1)+grp_wl(ig))
+            gas_jrad(ig,i) = wlm**2*planck(wlm,gas_temp(i))/pc_c !first iteration
+          enddo
         enddo
         if(any(gas_jrad<0.d0)) stop "gas_setup: gas_jrad<=0"
         if(any(gas_jrad/=gas_jrad)) stop "gas_setup: NaN in gas_jrad"

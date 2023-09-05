@@ -16,8 +16,8 @@ subroutine boundary_source
   implicit none
 
   integer :: ipart, ivac, ig, iig, i,j,k,l
-  real*8 :: r1, r2, mu0, esurfpart, wl0, om0
-  real*8 :: denom2, wl1, wl2
+  real*8 :: r1, r2, mu0, esurfpart, wl0
+  real*8 :: denom2!, wl1, wl2
   real*8 :: srftemp = 1d4
   type(packet) :: ptcl
   real*8, dimension(grp_ng) :: emitsurfprobg  !surface emission probabilities
@@ -42,9 +42,9 @@ subroutine boundary_source
   endif
 
   do ig = 1, grp_ng
-    wl1 = pc_h*pc_c*grp_wlinv(ig+1)/(pc_kb*srftemp)
-    wl2 = pc_h*pc_c*grp_wlinv(ig)/(pc_kb*srftemp)
-    emitsurfprobg(ig) = 15d0*specint(wl1,wl2,3)/pc_pi**4
+    ! wl1 = pc_h*pc_c*grp_wlinv(ig+1)/(pc_kb*srftemp)
+    ! wl2 = pc_h*pc_c*grp_wlinv(ig)/(pc_kb*srftemp)
+    emitsurfprobg(ig) = specint0(1d0/srftemp,ig)!15d0*specint(wl1,wl2,3)/pc_pi**4
   enddo
 
 

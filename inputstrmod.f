@@ -29,7 +29,6 @@ c
       real*8,allocatable :: str_massfr(:,:,:,:) !(nabund,nx,ny,nz)
 c
 c-- domain compression
-      logical :: str_lvoid=.false.  !flag existence of void cells
       integer :: str_nc=0  !number of cells in compressed grid
       integer,allocatable :: str_idcell(:) !(nc)
       real*8,allocatable :: str_massdc(:) !(nc)
@@ -96,12 +95,11 @@ c     --------------------------------------------------------
       integer :: i,j,k,l,ierr,nx_r,ny_r,nz_r,nvar,ncol
       integer :: jmass,jxleft,jye,jtemp
       integer :: jradtemp,jvol,jvxleft,jlum
-      integer :: ncorner,nvoid,ncell,ncpr
+      integer :: ncell,ncpr
       character(2) :: dmy
       character(8),allocatable :: labl(:)
       real*8,allocatable :: raw(:,:)
-      real*8 :: mni56,help
-      real*8 :: r,rs
+      real*8 :: help
 c
 c-- copy
       igeom = igeomin
@@ -299,7 +297,6 @@ c
 c
 c-- add void cell
       if(str_nc/=nx*ny*nz) then
-       str_lvoid = .true.
        str_nc = str_nc+1
       endif
 c
@@ -348,7 +345,6 @@ c
       enddo !j
       enddo !k
 c-- sanity check
-      if(str_lvoid) l = l+1
       if(l/=str_nc) stop 'inputstr_compress: l/=str_nc' !one dummy cell
       if(idcell/=nx*ny*nz) stop 'inputstr_compress: idcell/=nx*ny*nz'
 c

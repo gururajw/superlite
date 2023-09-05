@@ -11,7 +11,6 @@ c     ----------------------
 * Write grid values to file
 ************************************************************************
       integer :: i,j,k
-      integer :: np,npbot
       integer,save :: nrow=0 !number of rows for printing grid variables
       integer,save :: ncpr=0 !number of cells per rank
       integer :: reclen

@@ -51,7 +51,7 @@ c
 c-- check if bins are read or generated
       do i = 1,3
          if(i==1.and.flx_ndim(i)<0) then
-            call read_fluxgrid(i,flx_ndim(i),fname)
+            call read_fluxgrid(i,fname)
          else
             call generate_fluxgrid(i,flx_ndim(i),flx_wlmin,flx_wlmax)
          endif
@@ -65,11 +65,11 @@ c
       end subroutine fluxgrid_setup
 c
 c
-      subroutine read_fluxgrid(iflx,idex,fname)
+      subroutine read_fluxgrid(iflx,fname)
 c     ------------------------------
       use physconstmod
       implicit none
-      integer,intent(in) :: idex,iflx
+      integer,intent(in) :: iflx
       character(12),intent(in) :: fname
 *************************************************************
 * read lab wavelength grid for flux from file
